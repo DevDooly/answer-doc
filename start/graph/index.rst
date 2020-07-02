@@ -1,10 +1,9 @@
-정보
-====
+그래프
+======
 
 .. toctree::
    :maxdepth: 1
    :name: toc-about
 
    intro
-   faq
 

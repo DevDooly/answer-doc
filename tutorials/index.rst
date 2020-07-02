@@ -1,10 +1,9 @@
-정보
-====
+OpenCV Tutorials
+================
 
 .. toctree::
    :maxdepth: 1
    :name: toc-about
 
-   intro
-   faq
+   opencv/image
 
