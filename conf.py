@@ -34,6 +34,9 @@ extensions = [
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
+# Directories in which to search for additional message catalogs, relative to the source directory.
+locale_dirs = ['locale/']
+gettext_compact = False
 
 # You can specify multiple suffix as a list of string: ['.rst', '.md']
 source_suffix = ".rst"
