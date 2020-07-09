@@ -9,11 +9,12 @@ Welcome to ANSWER's documentation!
 ANSWER 공식 문서화 사이트 입니다.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: 일반
    :name: section-general
 
-   about/index
+   about/intro
+   about/faq
 
 
 .. toctree::

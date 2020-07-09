@@ -1,11 +1,16 @@
+.. meta::
+    :keywords: START
+
+.. _doc-start-index:
+
 시작하기
 ========
 
 .. toctree::
    :maxdepth: 1
-   :name: toc-about
+   :name: toc-start
 
-   install/index
+   install
    run/index
    config/index
    login/index
