@@ -7,6 +7,7 @@
 
    install/index
    run/index
+   config/index
    login/index
    dashboard/index
    storage/index

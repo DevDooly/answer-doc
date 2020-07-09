@@ -1,3 +1,8 @@
+.. meta::
+    :keywords: ABOUT
+
+.. _doc-about-index:
+
 정보
 ====
 
