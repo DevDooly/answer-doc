@@ -1,1 +1,352 @@
 #!/usr/bin/env bash
+
+ANSWER_IMAGE_DB=postgres
+ANSWER_IMAGE_S3=minio/minio
+ANSWER_IMAGE_CORE=bogonets/answer-core
+ANSWER_IMAGE_API=bogonets/answer-api
+ANSWER_IMAGE_WEB=bogonets/answer-web
+
+ANSWER_NAME_PREFIX=answer-cli-
+ANSWER_NAME_DB=${ANSWER_NAME_PREFIX}db
+ANSWER_NAME_S3=${ANSWER_NAME_PREFIX}s3
+ANSWER_NAME_CORE=${ANSWER_NAME_PREFIX}core
+ANSWER_NAME_API=${ANSWER_NAME_PREFIX}api
+ANSWER_NAME_WEB=${ANSWER_NAME_PREFIX}web
+
+ANSWER_TAG_DB=10
+ANSWER_TAG_S3=RELEASE.2020-04-15T19-42-18Z
+ANSWER_TAG_CORE=latest
+ANSWER_TAG_API=latest
+ANSWER_TAG_WEB=latest
+
+AUTOMATIC_YES=0
+POSITIONAL_ARGUMENTS=()
+
+ANSWER_DB_USER=bogo
+ANSWER_DB_PASSWORD=6090
+ANSWER_DB_PORT=5432
+
+ANSWER_S3_ID=minio
+ANSWER_S3_PW=minio123
+ANSWER_S3_PORT=9000
+
+ANSWER_CORE_NODE=default
+ANSWER_CORE_BIND=0.0.0.0
+ANSWER_CORE_PORT=20002
+ANSWER_CORE_VERBOSE=0
+ANSWER_CORE_SYNC=0
+
+ANSWER_API_PORT=20001
+ANSWER_WEB_PORT=20000
+
+ENABLE_GPU=0
+ENABLE_HOST_NETWORK=1
+
+DEFAULT_USER_CONFIG=$(cat << EOF
+ENABLE_GPU=1
+ENABLE_HOST_NETWORK=1
+EOF
+)
+
+ANSWER_USER_HOME=$HOME/.answer
+ANSWER_USER_CONFIG=$ANSWER_USER_HOME/answer-cli.config
+ANSWER_USER_S3_CONFIG=$ANSWER_USER_HOME/s3.config
+ANSWER_USER_S3_DATA=$ANSWER_USER_HOME/s3.data
+ANSWER_USER_CORE_STORAGE=$ANSWER_USER_HOME/core.storage
+
+function make_directory
+{
+    local dir=$1
+    if [[ ! -d "$dir" ]]; then
+        mkdir -p "$dir"
+    fi
+}
+
+make_directory "$ANSWER_USER_HOME"
+make_directory "$ANSWER_USER_S3_DATA"
+make_directory "$ANSWER_USER_CORE_STORAGE"
+
+## answer-cli configuration:
+if [[ ! -f "$ANSWER_USER_CONFIG" ]]; then
+    print_message "Create new configuration: $ANSWER_USER_CONFIG"
+    echo "$DEFAULT_USER_CONFIG" > "$ANSWER_USER_CONFIG"
+fi
+if [[ -f "$ANSWER_USER_CONFIG" ]]; then
+    print_message "Load configuration: $ANSWER_USER_CONFIG"
+    eval $(cat $ANSWER_USER_CONFIG)
+fi
+
+function print_message
+{
+    echo "$@"
+}
+
+function print_error
+{
+    echo -e "\033[31m" "$@" "\033[0m" 1>&2
+}
+
+function check_code_or_exit
+{
+    local code=$?
+    if [[ $code -ne 0 ]]; then
+        print_error "An error has been detected: $code"
+        exit $code
+    fi
+}
+
+function print_usage
+{
+    print_message "Usage: $0 [options] {command}"
+    print_message " "
+    print_message "Available options are:"
+    print_message "  --help     Print this message."
+    print_message "  -h         Equals --help option."
+    print_message "  --yes      Automatic yes to prompts."
+    print_message "  -y         Equals --yes option."
+    print_message "  --         Stop handling options."
+    print_message " "
+    print_message "List of commands:"
+    print_message "  images     List images"
+    print_message "  logs       View output from containers"
+    print_message "  ps         List containers"
+    print_message "  pull       Pull service images"
+    print_message "  restart    Restart services"
+    print_message "  rm         Remove stopped containers"
+    print_message "  run        Run a one-off command"
+    print_message "  start      Start services"
+    print_message "  stop       Stop services"
+    print_message "  up         Create and start containers"
+}
+
+function run_images
+{
+    docker images bogonets/answer-*
+}
+
+function run_logs
+{
+    print_error "Unsupported operation."
+}
+
+function run_ps
+{
+    docker ps --filter "name=$ANSWER_NAME_PREFIX" \
+              --format '{{.Names}}\t({{.ID}}): {{.CreatedAt}}, Status={{.Status}}, Ports={{.Ports}}'
+}
+
+function run_pull
+{
+    docker pull $ANSWER_IMAGE_DB:$ANSWER_TAG_DB
+    docker pull $ANSWER_IMAGE_S3:$ANSWER_TAG_S3
+    docker pull $ANSWER_IMAGE_CORE:$ANSWER_TAG_CORE
+    docker pull $ANSWER_IMAGE_API:$ANSWER_TAG_API
+    docker pull $ANSWER_IMAGE_WEB:$ANSWER_TAG_WEB
+}
+
+function _run_all_command
+{
+    docker "$1" "$ANSWER_NAME_DB"
+    docker "$1" "$ANSWER_NAME_MINIO"
+    docker "$1" "$ANSWER_NAME_CORE"
+    docker "$1" "$ANSWER_NAME_API"
+    docker "$1" "$ANSWER_NAME_WEB"
+}
+
+function run_restart
+{
+    _run_all_command restart
+}
+
+function run_rm
+{
+    _run_all_command rm
+}
+
+function run_run
+{
+    _run_all_command run
+}
+
+function run_start
+{
+    _run_all_command start
+}
+
+function run_stop
+{
+    _run_all_command stop
+}
+
+function _run_answer_cli_db
+{
+    local image=${ANSWER_IMAGE_DB}:${ANSWER_TAG_DB}
+    local args="-d --name ${ANSWER_NAME_DB}"
+    if [[ $ENABLE_HOST_NETWORK -ne 0 ]]; then
+        args="${args} --network host"
+    else
+        args="${args} -p ${ANSWER_DB_PORT}:5432"
+    fi
+
+    args="${args} -e POSTGRES_USER=${ANSWER_DB_USER}"
+    args="${args} -e POSTGRES_PASSWORD=${ANSWER_DB_PASSWORD}"
+    args="${args} ${image}"
+
+    docker run ${args}
+}
+
+function _run__answer_cli_s3
+{
+    local guest_data_dir=/data
+    local image=${ANSWER_IMAGE_S3}:${ANSWER_TAG_S3}
+    local args="-d --name ${ANSWER_NAME_S3}"
+    if [[ $ENABLE_HOST_NETWORK -ne 0 ]]; then
+        args="${args} --network host"
+    else
+        args="${args} -p ${ANSWER_S3_PORT}:${ANSWER_S3_PORT}"
+    fi
+
+    args="${args} -e MINIO_ACCESS_KEY=${ANSWER_S3_ID}"
+    args="${args} -e MINIO_SECRET_KEY=${ANSWER_S3_PW}"
+    args="${args} -v ${ANSWER_USER_S3_CONFIG}:/root/.minio"
+    args="${args} -v ${ANSWER_USER_S3_DATA}:${guest_data_dir}"
+    args="${args} ${image}"
+    args="${args} server ${guest_data_dir}"
+
+    docker run ${args}
+}
+
+function _run_answer_cli_core
+{
+    local image=${ANSWER_IMAGE_CORE}:${ANSWER_TAG_CORE}
+    local args="-d --name ${ANSWER_NAME_CORE}"
+    if [[ $ENABLE_HOST_NETWORK -ne 0 ]]; then
+        args="${args} --network host"
+    else
+        args="${args} -p ${ANSWER_CORE_PORT}:${ANSWER_CORE_PORT}"
+    fi
+    if [[ $ENABLE_GPU -ne 0 ]]; then
+        args="${args} --gpus all"
+    fi
+
+    args="${args} -v ${ANSWER_USER_S3_DATA}:/usr/local/c2core/storage"
+    args="${args} ${image}"
+
+    if [[ $ANSWER_CORE_VERBOSE -ne 0 ]]; then
+        args="${args} -v"
+    fi
+    if [[ $ANSWER_CORE_SYNC -ne 0 ]]; then
+        args="${args} -s"
+    fi
+    args="${args} ${ANSWER_CORE_NODE}"
+    args="${args} tcp://${ANSWER_CORE_BIND}:${ANSWER_CORE_PORT}"
+
+    docker run ${args}
+}
+
+function _run_answer_cli_api
+{
+    local image=${ANSWER_IMAGE_API}:${ANSWER_TAG_API}
+    local args="-d --name ${ANSWER_NAME_API}"
+    if [[ $ENABLE_HOST_NETWORK -ne 0 ]]; then
+        args="${args} --network host"
+    else
+        args="${args} -p ${ANSWER_API_PORT}:${ANSWER_API_PORT}"
+    fi
+
+    args="${args} -e DB_PORT=${ANSWER_DB_PORT}"
+    args="${args} ${image}"
+
+    docker run ${args}
+}
+
+function _run_answer_cli_web
+{
+    local image=${ANSWER_IMAGE_WEB}:${ANSWER_TAG_WEB}
+    local args="-d --name ${ANSWER_NAME_WEB}"
+    if [[ $ENABLE_HOST_NETWORK -ne 0 ]]; then
+        args="${args} --network host"
+    else
+        args="${args} -p ${ANSWER_WEB_PORT}:${ANSWER_WEB_PORT}"
+    fi
+
+    args="${args} ${image}"
+    args="${args} --port=${ANSWER_WEB_PORT}"
+
+    docker run ${args}
+}
+
+function run_up
+{
+    _run_answer_cli_db
+    _run_answer_cli_s3
+    _run_answer_cli_core
+    _run_answer_cli_api
+    _run_answer_cli_web
+}
+
+while [[ -n $1 ]]; do
+    case $1 in
+    -h|--help)
+        print_usage
+        exit 0
+        ;;
+    -y|--yes)
+        AUTOMATIC_YES=1
+        shift
+        ;;
+    --)
+        shift
+        break
+        ;;
+    *)
+        POSITIONAL_ARGUMENTS+=("$1")
+        shift
+        ;;
+    esac
+done
+
+if [[ ${#POSITIONAL_ARGUMENTS[@]} -lt 1 ]]; then
+    print_error "Please enter a command."
+    exit 1
+fi
+
+COMMAND=${POSITIONAL_ARGUMENTS[0]}
+CMDARG1=${POSITIONAL_ARGUMENTS[1]}
+
+case $COMMAND in
+images)
+    run_images
+    ;;
+logs)
+    run_logs ${CMDARG1}
+    ;;
+ps)
+    run_ps
+    ;;
+pull)
+    run_pull
+    ;;
+restart)
+    run_restart
+    ;;
+rm)
+    run_rm
+    ;;
+run)
+    run_run
+    ;;
+start)
+    run_start
+    ;;
+stop)
+    run_stop
+    ;;
+up)
+    run_up
+    ;;
+*)
+    print_error "Unknown command: ${COMMAND}"
+    exit 1
+    ;;
+esac
