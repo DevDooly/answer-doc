@@ -43,41 +43,41 @@ Docker 설치
 만약, 우분투(x86_64/amd64)를 사용할경우 아래의 명령으로 설치할 수 있습니다.
 
 .. code-block:: bash
-   :linenos:
+    :linenos:
 
-   ## Uninstall old versions
-   sudo apt-get remove docker docker-engine docker.io containerd runc
+    ## Uninstall old versions
+    sudo apt-get remove docker docker-engine docker.io containerd runc
 
-   ## Set up the repository
-   sudo apt-get update
-   sudo apt-get install \
-        apt-transport-https \
-        ca-certificates \
-        curl \
-        gnupg-agent \
-        software-properties-common
+    ## Set up the repository
+    sudo apt-get update
+    sudo apt-get install \
+         apt-transport-https \
+         ca-certificates \
+         curl \
+         gnupg-agent \
+         software-properties-common
 
-   ## Add Docker’s official GPG key:
-   curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+    ## Add Docker’s official GPG key:
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
 
-   ## Verify that you now have the key with the fingerprint
-   sudo apt-key fingerprint 0EBFCD88
+    ## Verify that you now have the key with the fingerprint
+    sudo apt-key fingerprint 0EBFCD88
 
-   ## Set up the stable repository.
-   sudo add-apt-repository \
-        "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
-        $(lsb_release -cs) \
-        stable"
+    ## Set up the stable repository.
+    sudo add-apt-repository \
+         "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+         $(lsb_release -cs) \
+         stable"
 
-   ## Install Docker Engine
-   sudo apt-get update
-   sudo apt-get install docker-ce docker-ce-cli containerd.io
+    ## Install Docker Engine
+    sudo apt-get update
+    sudo apt-get install docker-ce docker-ce-cli containerd.io
 
-   ## Add docker group
-   sudo usermod -aG docker your-user
+    ## Add docker group
+    sudo usermod -aG docker your-user
 
-   ## Verify that Docker Engine is installed correctly by running the hello-world image.
-   sudo docker run hello-world
+    ## Verify that Docker Engine is installed correctly by running the hello-world image.
+    sudo docker run hello-world
 
 Docker Compose 설치
 -------------------
@@ -88,10 +88,10 @@ Docker Compose 설치
 리눅스를 사용할경우 아래의 명령으로 간단히 설치할 수 있습니다.
 
 .. code-block:: bash
-   :linenos:
+    :linenos:
 
-   sudo curl -L "https://github.com/docker/compose/releases/download/1.26.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-   sudo chmod +x /usr/local/bin/docker-compose
+    sudo curl -L "https://github.com/docker/compose/releases/download/1.26.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+    sudo chmod +x /usr/local/bin/docker-compose
 
 (선택) NVIDIA 그래픽 드라이버 지원
 ----------------------------------
@@ -116,17 +116,17 @@ GPGPU를 위한 CUDA지원을 "엔서"에 적용할 수 있습니다.
 만약, 우분투를 사용할경우 아래의 명령으로 설치할 수 있습니다.
 
 .. code-block:: bash
-   :linenos:
+    :linenos:
 
-   distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
-   curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | \
-      sudo apt-key add -
-   curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | \
-      sudo tee /etc/apt/sources.list.d/nvidia-docker.list
+    distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
+    curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | \
+        sudo apt-key add -
+    curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | \
+        sudo tee /etc/apt/sources.list.d/nvidia-docker.list
 
-   sudo apt-get update
-   sudo apt-get install -y nvidia-container-toolkit
-   sudo systemctl restart docker
+    sudo apt-get update
+    sudo apt-get install -y nvidia-container-toolkit
+    sudo systemctl restart docker
 
 (선택) nvidia-docker-compose 설치
 ---------------------------------
@@ -135,23 +135,27 @@ Docker-Compose 를 사용할 경우 NVIDIA 그래픽 드라이버가 연결되�
 이 경우 사용할 수 있는 몇가지 방법이 있다.
 
 - 전체 이미지를 수동으로 실행
-- Bash Script 작성
+- :download:`Bash Script </_static/answer-cli>` 작성
 - Docker의 ``daemon.json`` 파일에 ``runtimes`` 설정 추가
 - `nvidia-docker-compose <https://github.com/eywalker/nvidia-docker-compose>`_ 설치
 
-이 중 nvidia-docker-compose 를 설치하는 방법은 아래와 같다.
+이 중 nvidia-docker-compose 를 설치하는 방법은 아래와 같습니다.
 
 .. code-block:: bash
-   :linenos:
+    :linenos:
 
-   ## Install package.
-   pip install nvidia-docker-compose
+    pip install nvidia-docker-compose
 
-   docker-compose -f docker-compose-gpu.yaml ...
-   ## or
-   nvidia-docker-compose ...
+다음과 같이 사용할 수 있습니다.
 
-.. warning:: 이 방법은 공식이 아닙니다.
+.. code-block:: bash
+    :linenos:
+
+    docker-compose -f docker-compose-gpu.yaml ...
+    ## or
+    nvidia-docker-compose ...
+
+.. warning:: 이 방법은 비공식 입니다.
 
 엔서 다운로드
 -------------
@@ -163,11 +167,11 @@ Docker-Compose 를 사용할 경우 NVIDIA 그래픽 드라이버가 연결되�
 - `bogonets/answer-api <https://hub.docker.com/r/bogonets/answer-api>`_
 - `bogonets/answer-web <https://hub.docker.com/r/bogonets/answer-web>`_
 
-모두 최신 버전을 받고 싶다면 아래의 명령을 입력하면 됩니다.
+최신 버전을 받고 싶다면 아래의 명령을 입력하면 됩니다.
 
 .. code-block:: bash
-   :linenos:
+    :linenos:
 
-   docker pull bogonets/answer-core
-   docker pull bogonets/answer-api
-   docker pull bogonets/answer-web
+    docker pull bogonets/answer-core
+    docker pull bogonets/answer-api
+    docker pull bogonets/answer-web

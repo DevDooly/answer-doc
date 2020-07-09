@@ -10,3 +10,7 @@ __pycache__/
 .vscode
 .opvim
 
+### OS ###
+.DS_Store
+Thumbs.db
+

@@ -18,11 +18,13 @@ ANSWER 공식 문서화 사이트 입니다.
 
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: 시작
    :name: section-start
 
-   start/index
+   start/install
+   start/run
+   start/config
 
 
 .. toctree::
