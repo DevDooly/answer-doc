@@ -27,6 +27,7 @@ ANSWER 공식 문서화 사이트 입니다.
    start/config
    start/login
    start/project
+   start/dashboard
 
 
 .. toctree::
