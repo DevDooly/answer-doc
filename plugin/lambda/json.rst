@@ -1,3 +1,8 @@
+.. meta::
+    :keywords: PLUGIN LAMBDA JSON
+
+.. _doc-plugin-lambda-json:
+
 람다 플러그인 JSON
 ==================
 

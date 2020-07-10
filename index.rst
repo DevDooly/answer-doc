@@ -28,11 +28,13 @@ ANSWER 공식 문서화 사이트 입니다.
 
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: 플러그인
    :name: section-plugin
 
-   plugin/index
+   plugin/lambda/intro
+   plugin/lambda/json
+   plugin/lambda/python
 
 
 .. toctree::
