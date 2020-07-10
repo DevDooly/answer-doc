@@ -1,153 +1,21 @@
 람다 플러그인 JSON
 ==================
 
-Example
--------
+전체 구조
+---------
 
-.. code-block:: json
+.. code-block:: javascript
     :linenos:
 
     {
         "info": {
-            "name": "cv2_videocapture_mp",
-            "version": "1.0.0",
-            "category": "cv2",
-            "keywords": ["cv2"],
-            "homepage": "https://answer.bogonets.com/",
-            "bugs": "https://answer.bogonets.com/",
-            "license": "Bogonet License",
-            "author": "zer0",
-            "dependencies": [
-                {"type": "pip", "src": "numpy"},
-                {"type": "pip", "src": "opencv-python"}
-            ],
-            "engines": ">=1.0.2",
-            "environment": {
-                "type": "pyenv",
-                "name": "cv2"
-            },
-            "titles": {
-                "en": "cv2.videocapture.mp",
-                "ko": "cv2.videocapture.mp"
-            },
-            "descriptions": {
-                "en": "Class for video capturing from video files, image sequences or cameras.",
-                "ko": "비디오 파일, 이미지 시퀀스 또는 카메라에서 비디오를 캡처한다."
-            },
-            "documentation_mime": "text",
-            "documentations": {
-            },
-            "meta": {}
+            ...
         },
         "controls": {
-            "input": [
-            ],
-            "output": [
-                {
-                    "name": "frame",
-                    "mimes": ["image/jpeg", "image/png"]
-                }
-            ]
+            ...
         },
         "props": [
-            {
-                "rule": "initialize_only",
-                "name": "filename",
-                "default_value": "",
-                "type": "str",
-                "required": true,
-                "valid": {},
-                "title": {
-                    "en": "Filename",
-                    "ko": "Filename"
-                },
-                "help": {
-                    "en": "Name of file to be loaded.",
-                    "ko": "읽어올 파일 이름."
-                }
-            },
-            {
-                "rule": "initialize_only",
-                "name": "api_preference",
-                "default_value": "default",
-                "type": "str",
-                "required": true,
-                "valid": {
-                    "list": "default;ffmpeg;images;dshow"
-                },
-                "title": {
-                    "en": "API Preference",
-                    "ko": "API Preference"
-                },
-                "help": {
-                    "en": "Preferred Capture API backends to use.",
-                    "ko": "사용할 백엔드 API."
-                }
-            },
-            {
-                "rule": "initialize_only",
-                "name": "sleep",
-                "default_value": 0,
-                "type": "int",
-                "required": true,
-                "valid": {},
-                "title": {
-                    "en": "Sleep for the next iteration.",
-                    "ko": "다음 반복을 위한 대기시간."
-                },
-                "help": {
-                    "en": "Sleep after reading the frame. (milliseconds)",
-                    "ko": "프레임을 읽은 후 잠시 대기한다. (밀리초)"
-                }
-            },
-            {
-                "rule": "initialize_only",
-                "name": "reopen",
-                "default_value": true,
-                "type": "bool",
-                "required": false,
-                "valid": {},
-                "title": {
-                    "en": "Reopen Flag",
-                    "ko": "재연결 플래그"
-                },
-                "help": {
-                    "en": "If video frame acquisition fails, reconnect.",
-                    "ko": "비디오 프레임 획득에 실패하면 재연결한다."
-                }
-            },
-            {
-                "rule": "initialize_only",
-                "name": "max_queue_size",
-                "default_value": 4,
-                "type": "int",
-                "required": true,
-                "valid": {},
-                "title": {
-                    "en": "Max queue size",
-                    "ko": "Max queue size"
-                },
-                "help": {
-                    "en": "The upper limit on the number of items that can be queued.",
-                    "ko": "대기열에 넣을 수있는 항목 수의 상한 값."
-                }
-            },
-            {
-                "rule": "initialize_only",
-                "name": "exit_timeout_seconds",
-                "default_value": 4.0,
-                "type": "float",
-                "required": true,
-                "valid": {},
-                "title": {
-                    "en": "Exit timeout",
-                    "ko": "종료 타임아웃"
-                },
-                "help": {
-                    "en": "Maximum waiting time when destroying lambdas. (seconds)",
-                    "ko": "람다 파괴시 최대 대기 시간. (초)"
-                }
-            }
+            ...
         ]
     }
 
@@ -156,41 +24,45 @@ info
 
 람다의 상세 정보를 포함합니다.
 
-+--------------------+--------------+------------------------------------------------+
-| Name               | Type         | Description                                    |
-+====================+==============+================================================+
-| name               | string       | **[필수]** 람다의 이름                         |
-+--------------------+--------------+------------------------------------------------+
-| version            | string       | 람다의 버전 정보 (``major.minor.patch``)       |
-+--------------------+--------------+------------------------------------------------+
-| category           | string       | 람다의 상위 분류                               |
-+--------------------+--------------+------------------------------------------------+
-| keywords           | string array | 키워드. 검색 및 분류에 사용                    |
-+--------------------+--------------+------------------------------------------------+
-| homepage           | string       | 홈페이지 주소                                  |
-+--------------------+--------------+------------------------------------------------+
-| bugs               | string       | 버그 발생시 리포팅할 주소                      |
-+--------------------+--------------+------------------------------------------------+
-| license            | string       | 라이선스 이름                                  |
-+--------------------+--------------+------------------------------------------------+
-| author             | string       | 작성자                                         |
-+--------------------+--------------+------------------------------------------------+
-| dependencies       | object array | 종속성 목록                                    |
-+--------------------+--------------+------------------------------------------------+
-| engines            | string       | 실행가능한 CORE 엔진 버전                      |
-+--------------------+--------------+------------------------------------------------+
-| environment        | object       | 람다를 작동시킬 구성 환경                      |
-+--------------------+--------------+------------------------------------------------+
-| titles             | object       | 화면에 출력할 타이틀명                         |
-+--------------------+--------------+------------------------------------------------+
-| descriptions       | object       | 화면에 출력할 람다의 간략한 정보               |
-+--------------------+--------------+------------------------------------------------+
-| documentation_mime | string       | 상세 문서를 작성할 경우 문서의 ``MIME`` 종류   |
-+--------------------+--------------+------------------------------------------------+
-| documentations     | object       | 문서의 본문                                    |
-+--------------------+--------------+------------------------------------------------+
-| meta               | object       | ``API`` 또는 ``WEB`` 과 상호작용 위한 정보     |
-+--------------------+--------------+------------------------------------------------+
++--------------------+--------------+-----------------------------------+
+| Name               | Type         | Description                       |
++====================+==============+===================================+
+| name               | string       | **[필수]** 람다의 이름            |
++--------------------+--------------+-----------------------------------+
+| version            | string       | 람다의 버전 정보                  |
++--------------------+--------------+-----------------------------------+
+| category           | string       | 람다의 상위 분류                  |
++--------------------+--------------+-----------------------------------+
+| keywords           | string array | 키워드. 검색 및 분류에 사용       |
++--------------------+--------------+-----------------------------------+
+| homepage           | string       | 홈페이지 주소                     |
++--------------------+--------------+-----------------------------------+
+| bugs               | string       | 버그 발생시 리포팅할 주소         |
++--------------------+--------------+-----------------------------------+
+| license            | string       | 라이선스 이름                     |
++--------------------+--------------+-----------------------------------+
+| author             | string       | 작성자                            |
++--------------------+--------------+-----------------------------------+
+| dependencies       | object array | 종속성 목록                       |
++--------------------+--------------+-----------------------------------+
+| engines            | string       | 실행가능한 CORE 엔진 버전         |
++--------------------+--------------+-----------------------------------+
+| environment        | object       | 람다를 작동시킬 구성 환경         |
++--------------------+--------------+-----------------------------------+
+| titles             | object       | 화면에 출력할 타이틀명            |
++--------------------+--------------+-----------------------------------+
+| descriptions       | object       | 화면에 출력할 람다의 간략한 정보  |
++--------------------+--------------+-----------------------------------+
+| documentation_mime | string       | 문서에 적용될 ``MIME``            |
++--------------------+--------------+-----------------------------------+
+| documentations     | object       | 문서의 본문                       |
++--------------------+--------------+-----------------------------------+
+| meta               | object       | 메타 데이터 정보                  |
++--------------------+--------------+-----------------------------------+
+
+**version** 문자열은 ``major.minor.patch`` 포맷으로 버전명을 기입해 주세요.
+
+**meta** 객체는 "API" 또는 "WEB" 모듈과 상호작용하기 위한 정보를 포함합니다.
 
 **dependencies** 객체는 아래의 속성을 포함합니다.
 
@@ -217,34 +89,109 @@ info
 **titles**, **descriptions**, **documentations** 객체는
 언어 코드에 해당하는 ``Key`` 와 내용에 해당하는 ``Value`` 를 내포합니다.
 
+예제 코드는 다음과 같습니다.
+
+.. code-block:: javascript
+    :linenos:
+
+     "info": {
+        "name": "numpy_zeros",
+        "version": "1.0.0",
+        "category": "numpy",
+        "keywords": ["numpy"],
+        "homepage": "https://answer.bogonets.com/",
+        "bugs": "https://answer.bogonets.com/",
+        "license": "Bogonet License",
+        "author": "zer0",
+        "dependencies": [
+            {"type": "pip", "src": "numpy"}
+        ],
+        "engines": ">=1.0.2",
+        "environment": {},
+        "titles": {
+            "en": "numpy.zeros",
+            "ko": "numpy.zeros"
+        },
+        "descriptions": {
+            "en": "Returns an array filled with zeros.",
+            "ko": "0으로 채워진 배열을 반환한다."
+        },
+        "documentation_mime": "text",
+        "documentations": {},
+        "meta": {}
+    }
+
 controls
 --------
 
 람다의 입출력 슬롯을 정의합니다.
 
-**controls** 객체는 ``input`` 과 ``output`` 키를 갖고 있습니다.
+**controls** 객체는 아래의 속성을 포함합니다.
 
-**input**, **output** 객체는 아래의 속성을 포함합니다.
++----------+---------+-------------+
+| Name     | Type    | Description |
++==========+=========+=============+
+| input    | object  | 입력 슬롯   |
++----------+---------+-------------+
+| output   | object  | 출력 슬롯   |
++----------+---------+-------------+
 
-+----------+--------------+-------------+
-| Name     | Type         | Description |
-+==========+==============+=============+
-| list     | object array | 슬롯 목록 |
-+----------+--------------+-------------+
-| dynamic  | bool         | 동적 슬롯 지원 여부 |
-+----------+--------------+-------------+
-| method   | string       | ``native``, ``numpy``, ``string`` 세 가지 방법 제공 |
-+----------+--------------+-------------+
+**input** 과 **output** 객체는 아래의 속성을 포함합니다.
 
-**list**, 객체는 아래의 속성을 포함합니다.
++----------+--------------+---------------------------+
+| Name     | Type         | Description               |
++==========+==============+===========================+
+| list     | object array | 슬롯 목록                 |
++----------+--------------+---------------------------+
+| dynamic  | bool         | 동적 슬롯 지원 여부       |
++----------+--------------+---------------------------+
+| method   | string       | 슬롯의 데이터를 읽는 방법 |
++----------+--------------+---------------------------+
 
-+----------+--------------+-------------+
-| Name     | Type         | Description |
-+==========+==============+=============+
-| name     | string       | 슬롯의 이름 |
-+----------+--------------+-------------+
+**dynamic** 가 ``true`` 일 경우 사용자가 임의로 슬롯을 조절할 수 있습니다.
+
+**method** 는 아래의 값 중 하나를 사용할 수 있습니다.
+
+- ``native``: "CORE"의 원본 형태로 읽습니다. ``Box`` 구조를 사용합니다.
+- ``numpy``: Python numpy 배열을 사용합니다.
+- ``string``: 문자열을 사용합니다.
+
+**list** 객체는 아래의 속성을 포함합니다.
+
++----------+--------------+---------------+
+| Name     | Type         | Description   |
++==========+==============+===============+
+| name     | string       | 슬롯의 이름   |
++----------+--------------+---------------+
 | mimes    | string array | ``MIME`` 목록 |
-+----------+--------------+-------------+
++----------+--------------+---------------+
+
+예제 코드는 다음과 같습니다.
+
+.. code-block:: javascript
+    :linenos:
+
+    "controls": {
+        "input": {
+            "list": [
+                {
+                    "name": "text"
+                },
+                {
+                    "name": "audio",
+                    "mime": "audio/ogg"
+                }
+            ],
+            "dynamic": true,
+            "method": "numpy"
+        },
+        "output": [
+            {
+                "name": "frame",
+                "mimes": ["image/jpeg", "image/png"]
+            }
+        ]
+    }
 
 props
 -----
@@ -253,43 +200,90 @@ props
 
 **props** 객체는 아래의 속성을 포함합니다.
 
-+----------+--------------+-------------+
-| Name     | Type         | Description |
-+==========+==============+=============+
-| rule     | string       | ``initialize_only``, ``read_only``, ``read_and_write`` |
-+----------+--------------+-------------+
-| name     | string       | 속성 이름 |
-+----------+--------------+-------------+
-| default_value   | any       | 속성의 기본 값 |
-+----------+--------------+-------------+
-| type   | string       | str, bool, int, unsigned, size, float, double, json, csv, color, duration, byte, time, box_json |
-+----------+--------------+-------------+
-| required   | bool       | 필수 여부 |
-+----------+--------------+-------------+
-| valid   | object       | Validation 목록 |
-+----------+--------------+-------------+
-| title   | object       | 화면에 출력할 타이틀  |
-+----------+--------------+-------------+
-| help   | object       | 화면에 출력할 도움말 |
-+----------+--------------+-------------+
++---------------+--------------+----------------------+
+| Name          | Type         | Description          |
++===============+==============+======================+
+| rule          | string       | 속성에 적용할 규칙   |
++---------------+--------------+----------------------+
+| name          | string       | 속성 이름            |
++---------------+--------------+----------------------+
+| default_value | any          | 속성의 기본 값       |
++---------------+--------------+----------------------+
+| type          | string       | 속성 타입            |
++---------------+--------------+----------------------+
+| required      | bool         | 필수 여부            |
++---------------+--------------+----------------------+
+| valid         | object       | Validation 목록      |
++---------------+--------------+----------------------+
+| title         | object       | 화면에 출력할 타이틀 |
++---------------+--------------+----------------------+
+| help          | object       | 화면에 출력할 도움말 |
++---------------+--------------+----------------------+
 
-- ``initialize_only``, ``read_only``, ``read_and_write`` 은 각각 ``init``, ``r``, ``rw`` 와 동일합니다.
+**rule** 은 아래의 값 중 하나를 사용할 수 있습니다.
+
+- ``initialize_only``: 람다를 초기화 한 이후, 더이상 수정할 수 없습니다. ``init`` 으로 사용할 수 있습니다.
+- ``read_only``: 읽기 전용 속성으로, 람다의 속성을 조회하기 위한 용도 입니다. ``r`` 으로 사용할 수 있습니다.
+- ``read_and_write``: 읽기 및 쓰기 가능합니다. ``rw`` 으로 사용할 수 있습니다.
+
+**type** 은 아래의 값 중 하나를 사용할 수 있습니다.
+
+- ``str``: 문자열
+- ``bool``: Boolean, ``true`` 또는 ``false`` 값을 허용합니다.
+- ``int``: 정수형
+- ``unsigned``: 부호 없는 정수형
+- ``size``: 크기
+- ``float``: 단 정밀도 실수
+- ``double``: 배 정밀도 실수
+- ``json``: JSON 객체
+- ``csv``: CSV 문자열, ``,`` 를 사용하여 문자열을 분할합니다.
+- ``color``: 색상 값,  ``#RRGGBB`` 포맷의 문자열을 사용합니다.
+- ``duration``: 경과 시간. 문자열을 사용합니다.
+- ``byte``: 바이트 단위 크기. 문자열을 사용합니다.
+- ``time``: 절대 시간. 문자열을 사용합니다.
+- ``box_json``: ``Box`` 포맷의 JSON 객체
 
 **valid** 객체는 아래의 속성을 포함합니다.
 
 +----------+--------------+-------------+
 | Name     | Type         | Description |
 +==========+==============+=============+
-| list     | string       | 선택 목록 ``;`` 으로 구분합니다 |
+| list     | string       | 선택 목록   |
 +----------+--------------+-------------+
-| hint     | string       | 힌트 목록 ``;`` 으로 구분합니다  |
+| hint     | string       | 힌트 목록   |
 +----------+--------------+-------------+
-| min     | string       | 최소 값   |
+| min      | string       | 최소 값     |
 +----------+--------------+-------------+
-| max     | string       | 최대 값   |
+| max      | string       | 최대 값     |
 +----------+--------------+-------------+
-| dyhint   | string       | 유동적 힌트   |
+| dyhint   | string       | 유동적 힌트 |
 +----------+--------------+-------------+
-| password   | string       | 암호문 처리 |
+| password | string       | 암호문 처리 |
 +----------+--------------+-------------+
+
+**list** 와 **hint** 는 ``;`` 으로 문자열을 분할 합니다.
+
+예제 코드는 다음과 같습니다.
+
+.. code-block:: javascript
+    :linenos:
+
+    {
+        "rule": "initialize_only",
+        "name": "api_preference",
+        "default_value": "default",
+        "type": "str",
+        "required": true,
+        "valid": {
+            "list": "default;ffmpeg;images;dshow"
+        },
+        "title": {
+            "en": "API Preference",
+            "ko": "API Preference"
+        },
+        "help": {
+            "en": "Preferred Capture API backends to use.",
+            "ko": "사용할 백엔드 API."
+        }
+    }
 
