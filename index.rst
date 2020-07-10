@@ -32,6 +32,10 @@ ANSWER 공식 문서화 사이트 입니다.
    :caption: 플러그인
    :name: section-plugin
 
+   plugin/node/intro
+   plugin/node/json
+   plugin/node/python
+
    plugin/lambda/intro
    plugin/lambda/json
    plugin/lambda/python
