@@ -43,6 +43,15 @@ ANSWER 공식 문서화 사이트 입니다.
 
 .. toctree::
    :maxdepth: 1
+   :caption: 위젯
+   :name: section-widgets
+
+   widgets/jupyter
+   widgets/plugin
+
+
+.. toctree::
+   :maxdepth: 1
    :caption: 람다
    :name: section-lambdas
 

@@ -1,5 +1,5 @@
 .. meta::
-    :keywords: LAMBDA UTIL NULL
+    :keywords: LAMBDAS UTIL NULL
 
 .. _doc-lambdas-util-null:
 

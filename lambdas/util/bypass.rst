@@ -1,5 +1,5 @@
 .. meta::
-    :keywords: LAMBDA UTIL BYPASS
+    :keywords: LAMBDAS UTIL BYPASS
 
 .. _doc-lambdas-util-bypass:
 
