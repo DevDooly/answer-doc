@@ -8,8 +8,37 @@
 
 이 페이지는 "엔서" 사용자 환경 설정 방법을 정리한 곳입니다.
 
-CORE
-----
+answer-cli.config example
+-------------------------
+
+``$HOME/.answer/answer-cli.config`` 위치에 다음 내용을 저장하면 됩니다.
+
+- ANSWER_DB_PORT=5432
+- ANSWER_DB_USER=bogo
+- ANSWER_DB_PASSWORD=6090
+- ANSWER_S3_PORT=9000
+- ANSWER_S3_ID=minio
+- ANSWER_S3_PW=minio123
+- ANSWER_CORE_NODE=default
+- ANSWER_CORE_BIND=0.0.0.0
+- ANSWER_CORE_PORT=20002
+- ANSWER_CORE_VERBOSE=0
+- ANSWER_CORE_SYNC=0
+- ANSWER_API_PORT=20001
+- ANSWER_API_DB_URL=localhost
+- ANSWER_API_S3_URL=localhost
+- ANSWER_API_CORE_URL=localhost
+- ANSWER_WEB_HOST=0.0.0.0
+- ANSWER_WEB_PORT=20000
+- ENABLE_GPU=1
+- GPUS=all
+- ENABLE_HOST_NETWORK=1
+- DOCKER_LOGS_TAIL_NUMBER=10
+
+default.json example
+--------------------
+
+``$HOME/.answer/core.storage/node/default.json`` 위치에 다음 내용을 저장하면 됩니다.
 
 .. code-block:: javascript
     :linenos:
@@ -74,35 +103,4 @@ CORE
       },
       "immutable": true
     }
-
-
-
-
-
-API
----
-
-CORE_URL
-CORE_PORT
-
-DB_URL
-DB_PORT
-
-DB_USER
-DB_PASSWORD
-
-MINIO_URL
-MINIO_PORT
-MINIO_ACCESS_TOKEN
-MINIO_SECRET_TOKEN
-
-WEB
----
-
---port=NUMBER - select port to use, default: PORT env var or 8080
---host=ADDRESS - select host address to bind to, default: IP env var or 0.0.0.0 ("any address")
---no-browser - suppress automatic web browser launching
---browser=BROWSER - specify browser to use instead of system default
---quiet | -q - suppress logging
---verbose | -V - more logging (logs all requests, shows all listening IPv4 interfaces, etc.)
 
