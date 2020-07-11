@@ -20,15 +20,19 @@ ANSWER_TAG_API=latest
 ANSWER_TAG_WEB=latest
 
 AUTOMATIC_YES=0
+DRY_RUN=0
+VERBOSE=0
 POSITIONAL_ARGUMENTS=()
 
+## Configurations
+
+ANSWER_DB_PORT=5432
 ANSWER_DB_USER=bogo
 ANSWER_DB_PASSWORD=6090
-ANSWER_DB_PORT=5432
 
+ANSWER_S3_PORT=9000
 ANSWER_S3_ID=minio
 ANSWER_S3_PW=minio123
-ANSWER_S3_PORT=9000
 
 ANSWER_CORE_NODE=default
 ANSWER_CORE_BIND=0.0.0.0
@@ -37,14 +41,45 @@ ANSWER_CORE_VERBOSE=0
 ANSWER_CORE_SYNC=0
 
 ANSWER_API_PORT=20001
+ANSWER_API_DB_URL=localhost
+ANSWER_API_S3_URL=localhost
+ANSWER_API_CORE_URL=localhost
+
+ANSWER_WEB_HOST=0.0.0.0
 ANSWER_WEB_PORT=20000
 
 ENABLE_GPU=0
+GPUS=all
 ENABLE_HOST_NETWORK=1
+DOCKER_LOGS_TAIL_NUMBER=10
 
 DEFAULT_USER_CONFIG=$(cat << EOF
+ANSWER_DB_PORT=5432
+ANSWER_DB_USER=bogo
+ANSWER_DB_PASSWORD=6090
+
+ANSWER_S3_PORT=9000
+ANSWER_S3_ID=minio
+ANSWER_S3_PW=minio123
+
+ANSWER_CORE_NODE=default
+ANSWER_CORE_BIND=0.0.0.0
+ANSWER_CORE_PORT=20002
+ANSWER_CORE_VERBOSE=0
+ANSWER_CORE_SYNC=0
+
+ANSWER_API_PORT=20001
+ANSWER_API_DB_URL=localhost
+ANSWER_API_S3_URL=localhost
+ANSWER_API_CORE_URL=localhost
+
+ANSWER_WEB_HOST=0.0.0.0
+ANSWER_WEB_PORT=20000
+
 ENABLE_GPU=1
+GPUS=all
 ENABLE_HOST_NETWORK=1
+DOCKER_LOGS_TAIL_NUMBER=10
 EOF
 )
 
@@ -62,28 +97,26 @@ function make_directory
     fi
 }
 
-make_directory "$ANSWER_USER_HOME"
-make_directory "$ANSWER_USER_S3_DATA"
-make_directory "$ANSWER_USER_CORE_STORAGE"
-
-## answer-cli configuration:
-if [[ ! -f "$ANSWER_USER_CONFIG" ]]; then
-    print_message "Create new configuration: $ANSWER_USER_CONFIG"
-    echo "$DEFAULT_USER_CONFIG" > "$ANSWER_USER_CONFIG"
-fi
-if [[ -f "$ANSWER_USER_CONFIG" ]]; then
-    print_message "Load configuration: $ANSWER_USER_CONFIG"
-    eval $(cat $ANSWER_USER_CONFIG)
-fi
-
 function print_message
 {
     echo "$@"
 }
 
+function print_information
+{
+    echo -e "\033[32m$@\033[0m"
+}
+
+function print_verbose
+{
+    if [[ $VERBOSE -ne 0 ]]; then
+        echo -e "\033[34m$@\033[0m"
+    fi
+}
+
 function print_error
 {
-    echo -e "\033[31m" "$@" "\033[0m" 1>&2
+    echo -e "\033[31m$@\033[0m" 1>&2
 }
 
 function check_code_or_exit
@@ -97,13 +130,19 @@ function check_code_or_exit
 
 function print_usage
 {
-    print_message "Usage: $0 [options] {command}"
+    print_message "Usage: $0 [options] {command} {?module}"
     print_message " "
     print_message "Available options are:"
     print_message "  --help     Print this message."
     print_message "  -h         Equals --help option."
     print_message "  --yes      Automatic yes to prompts."
     print_message "  -y         Equals --yes option."
+    print_message "  --list     List of options."
+    print_message "  -l         Equals --list option."
+    print_message "  --dry-run  Don’t actually do anything, just show what would be done."
+    print_message "  -n         Equals --dry-run option."
+    print_message "  --verbose  Be more verbose/talkative during the operation."
+    print_message "  -v         Equals --verbose option."
     print_message "  --         Stop handling options."
     print_message " "
     print_message "List of commands:"
@@ -113,69 +152,182 @@ function print_usage
     print_message "  pull       Pull service images"
     print_message "  restart    Restart services"
     print_message "  rm         Remove stopped containers"
-    print_message "  run        Run a one-off command"
     print_message "  start      Start services"
     print_message "  stop       Stop services"
-    print_message "  up         Create and start containers"
+    print_message "  run        Create new containers"
+    print_message " "
+    print_message "List of modules:"
+    print_message "  db         Database"
+    print_message "  s3         Storage Service"
+    print_message "  core       Answer core"
+    print_message "  api        Answer api"
+    print_message "  web        Answer web"
+    print_message " "
+}
+
+function _print_variable
+{
+    eval "print_message - \$1=\${$1}"
+}
+
+function print_list
+{
+    _print_variable ANSWER_DB_PORT
+    _print_variable ANSWER_DB_USER
+    _print_variable ANSWER_DB_PASSWORD
+
+    _print_variable ANSWER_S3_PORT
+    _print_variable ANSWER_S3_ID
+    _print_variable ANSWER_S3_PW
+
+    _print_variable ANSWER_CORE_NODE
+    _print_variable ANSWER_CORE_BIND
+    _print_variable ANSWER_CORE_PORT
+    _print_variable ANSWER_CORE_VERBOSE
+    _print_variable ANSWER_CORE_SYNC
+
+    _print_variable ANSWER_API_PORT
+    _print_variable ANSWER_API_DB_URL
+    _print_variable ANSWER_API_S3_URL
+    _print_variable ANSWER_API_CORE_URL
+
+    _print_variable ANSWER_WEB_HOST
+    _print_variable ANSWER_WEB_PORT
+
+    _print_variable ENABLE_GPU
+    _print_variable GPUS
+    _print_variable ENABLE_HOST_NETWORK
+    _print_variable DOCKER_LOGS_TAIL_NUMBER
+}
+
+function _exec_docker
+{
+    if [[ $DRY_RUN -ne 0 ]]; then
+        print_message docker "$@"
+    else
+        docker "$@"
+    fi
 }
 
 function run_images
 {
-    docker images bogonets/answer-*
+    _exec_docker images bogonets/answer-*
 }
 
 function run_logs
 {
-    print_error "Unsupported operation."
+    local module=$1
+    case ${module} in
+    db|s3|core|api|web)
+        container_name=${ANSWER_NAME_PREFIX}${module}
+        ;;
+    all)
+        print_error "The 'all' module is not supported."
+        exit 1
+        ;;
+    *)
+        print_error "Unknown module name: ${module}"
+        exit 1
+        ;;
+    esac
+
+    _exec_docker logs --tail ${DOCKER_LOGS_TAIL_NUMBER} --follow ${container_name}
 }
 
 function run_ps
 {
-    docker ps --filter "name=$ANSWER_NAME_PREFIX" \
-              --format '{{.Names}}\t({{.ID}}): {{.CreatedAt}}, Status={{.Status}}, Ports={{.Ports}}'
+    local module=$1
+    case ${module} in
+    db|s3|core|api|web)
+        container_name=${ANSWER_NAME_PREFIX}${module}
+        ;;
+    all)
+        container_name=${ANSWER_NAME_PREFIX}
+        ;;
+    *)
+        print_error "Unknown module name: ${module}"
+        exit 1
+        ;;
+    esac
+
+    _exec_docker ps --filter name=${container_name} \
+                    --format '{{.Names}}\t({{.ID}}): {{.CreatedAt}}, Status={{.Status}}, Ports={{.Ports}}'
 }
 
 function run_pull
 {
-    docker pull $ANSWER_IMAGE_DB:$ANSWER_TAG_DB
-    docker pull $ANSWER_IMAGE_S3:$ANSWER_TAG_S3
-    docker pull $ANSWER_IMAGE_CORE:$ANSWER_TAG_CORE
-    docker pull $ANSWER_IMAGE_API:$ANSWER_TAG_API
-    docker pull $ANSWER_IMAGE_WEB:$ANSWER_TAG_WEB
+    local module=$1
+    case $module in
+    db)
+        _exec_docker pull $ANSWER_IMAGE_DB:$ANSWER_TAG_DB
+        ;;
+    s3)
+        _exec_docker pull $ANSWER_IMAGE_S3:$ANSWER_TAG_S3
+        ;;
+    core)
+        _exec_docker pull $ANSWER_IMAGE_CORE:$ANSWER_TAG_CORE
+        ;;
+    api)
+        _exec_docker pull $ANSWER_IMAGE_API:$ANSWER_TAG_API
+        ;;
+    web)
+        _exec_docker pull $ANSWER_IMAGE_WEB:$ANSWER_TAG_WEB
+        ;;
+    all)
+        _exec_docker pull $ANSWER_IMAGE_DB:$ANSWER_TAG_DB
+        _exec_docker pull $ANSWER_IMAGE_S3:$ANSWER_TAG_S3
+        _exec_docker pull $ANSWER_IMAGE_CORE:$ANSWER_TAG_CORE
+        _exec_docker pull $ANSWER_IMAGE_API:$ANSWER_TAG_API
+        _exec_docker pull $ANSWER_IMAGE_WEB:$ANSWER_TAG_WEB
+        ;;
+    *)
+        print_error "Unknown module name: ${module}"
+        exit 1
+        ;;
+    esac
 }
 
-function _run_all_command
+function _exec_docker_common
 {
-    docker "$1" "$ANSWER_NAME_DB"
-    docker "$1" "$ANSWER_NAME_MINIO"
-    docker "$1" "$ANSWER_NAME_CORE"
-    docker "$1" "$ANSWER_NAME_API"
-    docker "$1" "$ANSWER_NAME_WEB"
+    local command=$1
+    local module=$2
+
+    case ${module} in
+    db|s3|core|api|web)
+        _exec_docker ${command} ${ANSWER_NAME_PREFIX}${module}
+        ;;
+    all)
+        _exec_docker ${command} $ANSWER_NAME_DB
+        _exec_docker ${command} $ANSWER_NAME_S3
+        _exec_docker ${command} $ANSWER_NAME_CORE
+        _exec_docker ${command} $ANSWER_NAME_API
+        _exec_docker ${command} $ANSWER_NAME_WEB
+        ;;
+    *)
+        print_error "Unknown module name: ${module}"
+        exit 1
+        ;;
+    esac
 }
 
 function run_restart
 {
-    _run_all_command restart
+    _exec_docker_common restart $1
 }
 
 function run_rm
 {
-    _run_all_command rm
-}
-
-function run_run
-{
-    _run_all_command run
+    _exec_docker_common rm $1
 }
 
 function run_start
 {
-    _run_all_command start
+    _exec_docker_common start $1
 }
 
 function run_stop
 {
-    _run_all_command stop
+    _exec_docker_common stop $1
 }
 
 function _run_answer_cli_db
@@ -192,10 +344,10 @@ function _run_answer_cli_db
     args="${args} -e POSTGRES_PASSWORD=${ANSWER_DB_PASSWORD}"
     args="${args} ${image}"
 
-    docker run ${args}
+    _exec_docker run ${args}
 }
 
-function _run__answer_cli_s3
+function _run_answer_cli_s3
 {
     local guest_data_dir=/data
     local image=${ANSWER_IMAGE_S3}:${ANSWER_TAG_S3}
@@ -213,7 +365,7 @@ function _run__answer_cli_s3
     args="${args} ${image}"
     args="${args} server ${guest_data_dir}"
 
-    docker run ${args}
+    _exec_docker run ${args}
 }
 
 function _run_answer_cli_core
@@ -226,7 +378,7 @@ function _run_answer_cli_core
         args="${args} -p ${ANSWER_CORE_PORT}:${ANSWER_CORE_PORT}"
     fi
     if [[ $ENABLE_GPU -ne 0 ]]; then
-        args="${args} --gpus all"
+        args="${args} --gpus $GPUS"
     fi
 
     args="${args} -v ${ANSWER_USER_S3_DATA}:/usr/local/c2core/storage"
@@ -241,7 +393,7 @@ function _run_answer_cli_core
     args="${args} ${ANSWER_CORE_NODE}"
     args="${args} tcp://${ANSWER_CORE_BIND}:${ANSWER_CORE_PORT}"
 
-    docker run ${args}
+    _exec_docker run ${args}
 }
 
 function _run_answer_cli_api
@@ -254,10 +406,19 @@ function _run_answer_cli_api
         args="${args} -p ${ANSWER_API_PORT}:${ANSWER_API_PORT}"
     fi
 
+    args="${args} -e CORE_URL=${ANSWER_API_CORE_URL}"
+    args="${args} -e CORE_PORT=${ANSWER_CORE_PORT}"
+    args="${args} -e DB_URL=${ANSWER_API_DB_URL}"
     args="${args} -e DB_PORT=${ANSWER_DB_PORT}"
+    args="${args} -e DB_USER=${ANSWER_DB_USER}"
+    args="${args} -e DB_PASSWORD=${ANSWER_DB_PASSWORD}"
+    args="${args} -e MINIO_URL=${ANSWER_API_S3_URL}"
+    args="${args} -e MINIO_PORT=${ANSWER_S3_PORT}"
+    args="${args} -e MINIO_ACCESS_TOKEN=${ANSWER_S3_ID}"
+    args="${args} -e MINIO_SECRET_TOKEN=${ANSWER_S3_PW}"
     args="${args} ${image}"
 
-    docker run ${args}
+    _exec_docker run ${args}
 }
 
 function _run_answer_cli_web
@@ -271,19 +432,49 @@ function _run_answer_cli_web
     fi
 
     args="${args} ${image}"
+    args="${args} --host=${ANSWER_WEB_HOST}"
     args="${args} --port=${ANSWER_WEB_PORT}"
+    args="${args} --no-browser"
 
-    docker run ${args}
+    _exec_docker run ${args}
 }
 
-function run_up
+function run_run
 {
-    _run_answer_cli_db
-    _run_answer_cli_s3
-    _run_answer_cli_core
-    _run_answer_cli_api
-    _run_answer_cli_web
+    local module=$1
+    case $module in
+    db)
+        _run_answer_cli_db
+        ;;
+    s3)
+        _run_answer_cli_s3
+        ;;
+    core)
+        _run_answer_cli_core
+        ;;
+    api)
+        _run_answer_cli_api
+        ;;
+    web)
+        _run_answer_cli_web
+        ;;
+    all)
+        _run_answer_cli_db
+        _run_answer_cli_s3
+        _run_answer_cli_core
+        _run_answer_cli_api
+        _run_answer_cli_web
+        ;;
+    *)
+        print_error "Unknown module: $module"
+        exit 1
+        ;;
+    esac
 }
+
+## -----------
+## ENTRY-POINT
+## -----------
 
 while [[ -n $1 ]]; do
     case $1 in
@@ -291,8 +482,20 @@ while [[ -n $1 ]]; do
         print_usage
         exit 0
         ;;
+    -l|--list)
+        print_list
+        exit 0
+        ;;
     -y|--yes)
         AUTOMATIC_YES=1
+        shift
+        ;;
+    -n|--dry-run)
+        DRY_RUN=1
+        shift
+        ;;
+    -v|--verbose)
+        VERBOSE=1
         shift
         ;;
     --)
@@ -306,47 +509,61 @@ while [[ -n $1 ]]; do
     esac
 done
 
+make_directory "$ANSWER_USER_HOME"
+make_directory "$ANSWER_USER_S3_DATA"
+make_directory "$ANSWER_USER_CORE_STORAGE"
+
+## answer-cli configuration:
+if [[ ! -f "$ANSWER_USER_CONFIG" ]]; then
+    print_verbose "Create new configuration: $ANSWER_USER_CONFIG"
+    echo "$DEFAULT_USER_CONFIG" > "$ANSWER_USER_CONFIG"
+fi
+if [[ -f "$ANSWER_USER_CONFIG" ]]; then
+    print_verbose "Load configuration: $ANSWER_USER_CONFIG"
+    source $ANSWER_USER_CONFIG
+fi
+
+print_verbose "All arguments:" "$0" "$@"
+
+COMMAND=${POSITIONAL_ARGUMENTS[0]}
+MODULE=${POSITIONAL_ARGUMENTS[1]:-all}
+
 if [[ ${#POSITIONAL_ARGUMENTS[@]} -lt 1 ]]; then
     print_error "Please enter a command."
     exit 1
 fi
-
-COMMAND=${POSITIONAL_ARGUMENTS[0]}
-CMDARG1=${POSITIONAL_ARGUMENTS[1]}
 
 case $COMMAND in
 images)
     run_images
     ;;
 logs)
-    run_logs ${CMDARG1}
+    run_logs ${MODULE}
     ;;
 ps)
-    run_ps
+    run_ps ${MODULE}
     ;;
 pull)
-    run_pull
+    run_pull ${MODULE}
     ;;
 restart)
-    run_restart
+    run_restart ${MODULE}
     ;;
 rm)
-    run_rm
-    ;;
-run)
-    run_run
+    run_rm ${MODULE}
     ;;
 start)
-    run_start
+    run_start ${MODULE}
     ;;
 stop)
-    run_stop
+    run_stop ${MODULE}
     ;;
-up)
-    run_up
+run)
+    run_run ${MODULE}
     ;;
 *)
     print_error "Unknown command: ${COMMAND}"
     exit 1
     ;;
 esac
+
