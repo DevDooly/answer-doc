@@ -107,6 +107,11 @@ function print_information
     echo -e "\033[32m$@\033[0m"
 }
 
+function print_warning
+{
+    echo -e "\033[33m$@\033[0m"
+}
+
 function print_verbose
 {
     if [[ $VERBOSE -ne 0 ]]; then
@@ -133,35 +138,30 @@ function print_usage
     print_message "Usage: $0 [options] {command} {?module}"
     print_message " "
     print_message "Available options are:"
-    print_message "  --help     Print this message."
-    print_message "  -h         Equals --help option."
-    print_message "  --yes      Automatic yes to prompts."
-    print_message "  -y         Equals --yes option."
-    print_message "  --list     List of options."
-    print_message "  -l         Equals --list option."
-    print_message "  --dry-run  Don’t actually do anything, just show what would be done."
-    print_message "  -n         Equals --dry-run option."
-    print_message "  --verbose  Be more verbose/talkative during the operation."
-    print_message "  -v         Equals --verbose option."
-    print_message "  --         Stop handling options."
+    print_message "  -h, --help     Print this message."
+    print_message "  -y, --yes      Automatic yes to prompts."
+    print_message "  -l, --list     List of options."
+    print_message "  -n, --dry-run  Don’t actually do anything, just show what would be done."
+    print_message "  -v, --verbose  Be more verbose/talkative during the operation."
+    print_message "  --             Stop handling options."
     print_message " "
     print_message "List of commands:"
-    print_message "  images     List images"
-    print_message "  logs       View output from containers"
-    print_message "  ps         List containers"
-    print_message "  pull       Pull service images"
-    print_message "  restart    Restart services"
-    print_message "  rm         Remove stopped containers"
-    print_message "  start      Start services"
-    print_message "  stop       Stop services"
-    print_message "  run        Create new containers"
+    print_message "  images         List images"
+    print_message "  logs           View output from containers"
+    print_message "  ps             List containers"
+    print_message "  pull           Pull service images"
+    print_message "  restart        Restart services"
+    print_message "  rm             Remove stopped containers"
+    print_message "  start          Start services"
+    print_message "  stop           Stop services"
+    print_message "  run            Create new containers"
     print_message " "
     print_message "List of modules:"
-    print_message "  db         Database"
-    print_message "  s3         Storage Service"
-    print_message "  core       Answer core"
-    print_message "  api        Answer api"
-    print_message "  web        Answer web"
+    print_message "  db             Database"
+    print_message "  s3             Storage Service"
+    print_message "  core           Answer core"
+    print_message "  api            Answer api"
+    print_message "  web            Answer web"
     print_message " "
 }
 
@@ -211,7 +211,39 @@ function _exec_docker
 
 function run_images
 {
-    _exec_docker images bogonets/answer-*
+    local module=$1
+    case ${module} in
+    db)
+        _exec_docker images $ANSWER_IMAGE_DB
+        ;;
+    s3)
+        _exec_docker images $ANSWER_IMAGE_S3
+        ;;
+    core)
+        _exec_docker images $ANSWER_IMAGE_CORE
+        ;;
+    api)
+        _exec_docker images $ANSWER_IMAGE_API
+        ;;
+    web)
+        _exec_docker images $ANSWER_IMAGE_WEB
+        ;;
+    all)
+        local _tmp=$(_exec_docker images)
+        echo "$_tmp" | head -1
+        echo "$_tmp" | grep "$ANSWER_IMAGE_DB"
+        echo "$_tmp" | grep "$ANSWER_IMAGE_S3"
+        echo "$_tmp" | grep "$ANSWER_IMAGE_CORE"
+        echo "$_tmp" | grep "$ANSWER_IMAGE_API"
+        echo "$_tmp" | grep "$ANSWER_IMAGE_WEB"
+        ;;
+    all)
+        ;;
+    *)
+        print_error "Unknown module name: ${module}"
+        exit 1
+        ;;
+    esac
 }
 
 function run_logs
@@ -523,21 +555,41 @@ if [[ -f "$ANSWER_USER_CONFIG" ]]; then
     source $ANSWER_USER_CONFIG
 fi
 
-print_verbose "All arguments:" "$0" "$@"
-
+ARGS_COUNT=${#POSITIONAL_ARGUMENTS[@]}
 COMMAND=${POSITIONAL_ARGUMENTS[0]}
 MODULE=${POSITIONAL_ARGUMENTS[1]:-all}
 
-if [[ ${#POSITIONAL_ARGUMENTS[@]} -lt 1 ]]; then
+case $MODULE in
+sss|minio)
+    MODULE=s3
+    ;;
+database|postgres|postgresql)
+    MODULE=db
+    ;;
+esac
+
+if [[ -z $COMMAND ]]; then
     print_error "Please enter a command."
     exit 1
 fi
+if [[ -z $(which docker) ]]; then
+    print_error "The 'docker' command is not found."
+    exit 1
+fi
+
+if [[ $ENABLE_GPU -ne 0 && -z $(which nvidia-smi) ]]; then
+    print_warning "The 'nvidia-smi' command is not found. Disable GPU features."
+    ENABLE_GPU=0
+fi
+
+print_verbose "- Selected command: $COMMAND"
+print_verbose "- Selected module: $MODULE"
 
 case $COMMAND in
-images)
-    run_images
+image|images)
+    run_images ${MODULE}
     ;;
-logs)
+log|logs)
     run_logs ${MODULE}
     ;;
 ps)
@@ -558,7 +610,7 @@ start)
 stop)
     run_stop ${MODULE}
     ;;
-run)
+up|run)
     run_run ${MODULE}
     ;;
 *)
