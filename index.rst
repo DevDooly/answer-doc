@@ -24,7 +24,6 @@ ANSWER 공식 문서화 사이트 입니다.
 
    start/install
    start/run
-   start/config
    start/login
    start/project
    start/dashboard
