@@ -1,7 +1,7 @@
 .. meta::
-    :keywords: LAMBDAS TRIGGER INFINITY
+    :keywords: LAMBDAS TRIGGER INFINITY_TRIGGER
 
-.. _doc-lambdas-trigger-infinity:
+.. _doc-lambdas-trigger-infinity_trigger:
 
 Infinity Lambda
 ===============
@@ -20,4 +20,5 @@ Infinity Lambda
 
 속성 목록
 ---------
+
 

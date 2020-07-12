@@ -134,7 +134,7 @@ logger
         "arguments": "stdout",
         "generator": "default_color",
         "line_feed": "auto",
-        "severity": "debug",
+        "severity": "notice",
         "auto_flush": true,
         "thread": true
     }

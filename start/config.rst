@@ -50,7 +50,7 @@ default.json example
         "arguments": "stdout",
         "generator": "default_color",
         "line_feed": "auto",
-        "severity": "debug",
+        "severity": "notice",
         "auto_flush": true,
         "thread": true
       },
@@ -94,13 +94,6 @@ default.json example
           "destination": "${STORAGE_PYTHON}/answer-lambda-rtc"
         }
       ],
-      "plugin": {
-        "script": "${STORAGE_PYTHON}/npp.py",
-        "event_create": "on_create",
-        "event_loop_begin": "on_loop_begin",
-        "event_loop_end": "on_loop_end",
-        "event_destroy": "on_destroy"
-      },
       "immutable": true
     }
 

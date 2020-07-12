@@ -55,8 +55,9 @@ ANSWER 공식 문서화 사이트 입니다.
    :caption: 람다
    :name: section-lambdas
 
+   lambdas/image/clock_image
    lambdas/rtc/realtime_video
-   lambdas/trigger/infinity
+   lambdas/trigger/infinity_trigger
    lambdas/util/bypass
    lambdas/util/null
 
