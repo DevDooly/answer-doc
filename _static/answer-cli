@@ -413,7 +413,7 @@ function _run_answer_cli_core
         args="${args} --gpus $GPUS"
     fi
 
-    args="${args} -v ${ANSWER_USER_S3_DATA}:/usr/local/c2core/storage"
+    args="${args} -v ${ANSWER_USER_CORE_STORAGE}:/usr/local/c2core/storage"
     args="${args} ${image}"
 
     if [[ $ANSWER_CORE_VERBOSE -ne 0 ]]; then
