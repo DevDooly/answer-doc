@@ -6,6 +6,21 @@
 람다 플러그인 Python
 ====================
 
+모듈명
+------
+
+"Python Interpreter" 를 직접 실행 했을 경우 ``__main__`` 모듈로 으로 실행되는 루틴과 구분하기 위해
+"엔서" 의 람다는 "Answer Python Plugin" 의 약자인 ``__app__`` 을 사용합니다.
+다음과 같은 진입점을 추가할 수 있습니다.
+
+.. code-block:: python
+    :linenos:
+
+    if __name__ == '__app__'
+        pass
+
+.. note:: 이 기능은 ``1.1.8`` 버전 부터 작동 합니다.
+
 on_set
 ------
 
@@ -161,6 +176,6 @@ Full example
         pass
 
 
-    if __name__ == '__main__':
+    if __name__ == '__app__':
         pass
 
