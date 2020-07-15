@@ -422,8 +422,7 @@ function _run_answer_cli_core
     if [[ $ANSWER_CORE_SYNC -ne 0 ]]; then
         args="${args} -s"
     fi
-    args="${args} ${ANSWER_CORE_NODE}"
-    args="${args} tcp://${ANSWER_CORE_BIND}:${ANSWER_CORE_PORT}"
+    args="${args} node ${ANSWER_CORE_NODE} tcp://${ANSWER_CORE_BIND}:${ANSWER_CORE_PORT}"
 
     _exec_docker run ${args}
 }
