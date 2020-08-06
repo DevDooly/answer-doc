@@ -5,6 +5,7 @@ ANSWER_IMAGE_S3=minio/minio
 ANSWER_IMAGE_CORE=bogonets/answer-core
 ANSWER_IMAGE_API=bogonets/answer-api
 ANSWER_IMAGE_WEB=bogonets/answer-web
+ANSWER_IMAGE_TURN=osom8979/turnserver
 
 ANSWER_NAME_PREFIX=answer-cli-
 ANSWER_NAME_DB=${ANSWER_NAME_PREFIX}db
@@ -12,12 +13,14 @@ ANSWER_NAME_S3=${ANSWER_NAME_PREFIX}s3
 ANSWER_NAME_CORE=${ANSWER_NAME_PREFIX}core
 ANSWER_NAME_API=${ANSWER_NAME_PREFIX}api
 ANSWER_NAME_WEB=${ANSWER_NAME_PREFIX}web
+ANSWER_NAME_TURN=${ANSWER_NAME_PREFIX}turn
 
 ANSWER_TAG_DB=10
 ANSWER_TAG_S3=RELEASE.2020-04-15T19-42-18Z
 ANSWER_TAG_CORE=latest
 ANSWER_TAG_API=latest
 ANSWER_TAG_WEB=latest
+ANSWER_TAG_TURN=latest
 
 AUTOMATIC_YES=0
 DRY_RUN=0
@@ -48,6 +51,8 @@ ANSWER_API_CORE_URL=localhost
 ANSWER_WEB_HOST=0.0.0.0
 ANSWER_WEB_PORT=20000
 
+ANSWER_TURN_PORT=3478
+
 ENABLE_GPU=0
 GPUS=all
 ENABLE_HOST_NETWORK=1
@@ -75,6 +80,8 @@ ANSWER_API_CORE_URL=localhost
 
 ANSWER_WEB_HOST=0.0.0.0
 ANSWER_WEB_PORT=20000
+
+ANSWER_TURN_PORT=3478
 
 ENABLE_GPU=1
 GPUS=all
@@ -162,6 +169,7 @@ function print_usage
     print_message "  core           Answer core"
     print_message "  api            Answer api"
     print_message "  web            Answer web"
+    print_message "  turn           Turn server"
     print_message " "
 }
 
@@ -193,6 +201,8 @@ function print_list
 
     _print_variable ANSWER_WEB_HOST
     _print_variable ANSWER_WEB_PORT
+
+    _print_variable ANSWER_TURN_PORT
 
     _print_variable ENABLE_GPU
     _print_variable GPUS
@@ -228,6 +238,9 @@ function run_images
     web)
         _exec_docker images $ANSWER_IMAGE_WEB
         ;;
+    turn)
+        _exec_docker images $ANSWER_IMAGE_TURN
+        ;;
     all)
         local _tmp=$(_exec_docker images)
         echo "$_tmp" | head -1
@@ -236,6 +249,7 @@ function run_images
         echo "$_tmp" | grep "$ANSWER_IMAGE_CORE"
         echo "$_tmp" | grep "$ANSWER_IMAGE_API"
         echo "$_tmp" | grep "$ANSWER_IMAGE_WEB"
+        echo "$_tmp" | grep "$ANSWER_IMAGE_TURN"
         ;;
     all)
         ;;
@@ -250,7 +264,7 @@ function run_logs
 {
     local module=$1
     case ${module} in
-    db|s3|core|api|web)
+    db|s3|core|api|web|turn)
         container_name=${ANSWER_NAME_PREFIX}${module}
         ;;
     all)
@@ -270,7 +284,7 @@ function run_ps
 {
     local module=$1
     case ${module} in
-    db|s3|core|api|web)
+    db|s3|core|api|web|turn)
         container_name=${ANSWER_NAME_PREFIX}${module}
         ;;
     all)
@@ -305,12 +319,16 @@ function run_pull
     web)
         _exec_docker pull $ANSWER_IMAGE_WEB:$ANSWER_TAG_WEB
         ;;
+    turn)
+        _exec_docker pull $ANSWER_IMAGE_TURN:$ANSWER_TAG_TURN
+        ;;
     all)
         _exec_docker pull $ANSWER_IMAGE_DB:$ANSWER_TAG_DB
         _exec_docker pull $ANSWER_IMAGE_S3:$ANSWER_TAG_S3
         _exec_docker pull $ANSWER_IMAGE_CORE:$ANSWER_TAG_CORE
         _exec_docker pull $ANSWER_IMAGE_API:$ANSWER_TAG_API
         _exec_docker pull $ANSWER_IMAGE_WEB:$ANSWER_TAG_WEB
+        _exec_docker pull $ANSWER_IMAGE_TURN:$ANSWER_TAG_TURN
         ;;
     *)
         print_error "Unknown module name: ${module}"
@@ -325,7 +343,7 @@ function _exec_docker_common
     local module=$2
 
     case ${module} in
-    db|s3|core|api|web)
+    db|s3|core|api|web|turn)
         _exec_docker ${command} ${ANSWER_NAME_PREFIX}${module}
         ;;
     all)
@@ -334,6 +352,7 @@ function _exec_docker_common
         _exec_docker ${command} $ANSWER_NAME_CORE
         _exec_docker ${command} $ANSWER_NAME_API
         _exec_docker ${command} $ANSWER_NAME_WEB
+        _exec_docker ${command} $ANSWER_NAME_TURN
         ;;
     *)
         print_error "Unknown module name: ${module}"
@@ -470,6 +489,21 @@ function _run_answer_cli_web
     _exec_docker run ${args}
 }
 
+function _run_answer_cli_turn
+{
+    local image=${ANSWER_IMAGE_TURN}:${ANSWER_TAG_TURN}
+    local args="-d --name ${ANSWER_NAME_TURN}"
+    if [[ $ENABLE_HOST_NETWORK -ne 0 ]]; then
+        args="${args} --network host"
+    else
+        args="${args} -p ${ANSWER_TURN_PORT}:${ANSWER_TURN_PORT}"
+    fi
+
+    args="${args} ${image}"
+
+    _exec_docker run ${args}
+}
+
 function run_run
 {
     local module=$1
@@ -489,12 +523,16 @@ function run_run
     web)
         _run_answer_cli_web
         ;;
+    turn)
+        _run_answer_cli_turn
+        ;;
     all)
         _run_answer_cli_db
         _run_answer_cli_s3
         _run_answer_cli_core
         _run_answer_cli_api
         _run_answer_cli_web
+        _run_answer_cli_turn
         ;;
     *)
         print_error "Unknown module: $module"
