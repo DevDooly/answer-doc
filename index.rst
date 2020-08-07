@@ -74,6 +74,13 @@ ANSWER 공식 문서화 사이트 입니다.
    :caption: 기타
    :name: section-etc
 
-   etc/troubleshooting.rst
+   etc/troubleshooting
 
+
+.. toctree::
+   :maxdepth: 1
+   :caption: 개발자
+   :name: section-dev
+
+   dev/index
 

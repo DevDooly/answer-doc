@@ -3,7 +3,7 @@ OpenCV Tutorials
 
 .. toctree::
    :maxdepth: 1
-   :name: toc-about
+   :name: toc-tutorials
 
    opencv/image
 
